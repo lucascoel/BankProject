@@ -1,7 +1,7 @@
-package com.example.jayaBank.service
+package com.example.jayaBank.services
 
-import com.example.jayaBank.exception.AuthenticationException
-import com.example.jayaBank.repository.AccountRepository
+import com.example.jayaBank.exceptions.AuthenticationException
+import com.example.jayaBank.repositories.AccountRepository
 import com.example.jayaBank.security.UserCustomDetails
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.userdetails.UserDetails

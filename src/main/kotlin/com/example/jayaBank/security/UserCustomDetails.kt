@@ -1,6 +1,6 @@
 package com.example.jayaBank.security
 
-import com.example.jayaBank.model.Account
+import com.example.jayaBank.models.Account
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails

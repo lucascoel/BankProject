@@ -1,14 +1,14 @@
-package com.example.jayaBank.service
+package com.example.jayaBank.services
 
 import com.example.jayaBank.commons.UserAuth
-import com.example.jayaBank.dto.OperationExtractDTO
-import com.example.jayaBank.dto.TransferExtractDTO
-import com.example.jayaBank.dto.TransferDTO
-import com.example.jayaBank.exception.AccountException
-import com.example.jayaBank.model.Account
-import com.example.jayaBank.model.Transfer
-import com.example.jayaBank.repository.AccountRepository
-import com.example.jayaBank.repository.TransferRepository
+import com.example.jayaBank.dtos.OperationExtractDTO
+import com.example.jayaBank.dtos.TransferExtractDTO
+import com.example.jayaBank.dtos.TransferDTO
+import com.example.jayaBank.exceptions.AccountException
+import com.example.jayaBank.models.Account
+import com.example.jayaBank.models.Transfer
+import com.example.jayaBank.repositories.AccountRepository
+import com.example.jayaBank.repositories.TransferRepository
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import java.math.BigDecimal

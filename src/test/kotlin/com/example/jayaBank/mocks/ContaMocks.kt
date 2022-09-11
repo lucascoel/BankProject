@@ -1,6 +1,6 @@
 package com.example.jayaBank.mocks
 
-import com.example.jayaBank.model.Account
+import com.example.jayaBank.models.Account
 import java.math.BigDecimal
 
 class ContaMocks {

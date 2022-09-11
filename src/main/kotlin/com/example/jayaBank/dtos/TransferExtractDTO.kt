@@ -1,4 +1,4 @@
-package com.example.jayaBank.dto
+package com.example.jayaBank.dtos
 
 import java.math.BigDecimal
 import java.time.ZonedDateTime

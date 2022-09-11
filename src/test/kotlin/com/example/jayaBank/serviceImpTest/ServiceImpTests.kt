@@ -1,9 +1,9 @@
 package com.example.jayaBank.serviceImpTest
 
-import com.example.jayaBank.exception.AccountException
-import com.example.jayaBank.model.Account
-import com.example.jayaBank.repository.AccountRepository
-import com.example.jayaBank.service.UserService
+import com.example.jayaBank.exceptions.AccountException
+import com.example.jayaBank.models.Account
+import com.example.jayaBank.repositories.AccountRepository
+import com.example.jayaBank.services.UserService
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import org.junit.jupiter.api.Assertions.assertEquals

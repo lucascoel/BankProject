@@ -1,4 +1,4 @@
-package com.example.jayaBank.exception
+package com.example.jayaBank.exceptions
 
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException

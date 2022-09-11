@@ -1,8 +1,8 @@
 package com.example.jayaBank.security
 
-import com.example.jayaBank.exception.AuthenticationException
-import com.example.jayaBank.service.UserDetailsCustomService
-import com.example.jayaBank.util.JwtUtil
+import com.example.jayaBank.exceptions.AuthenticationException
+import com.example.jayaBank.services.UserDetailsCustomService
+import com.example.jayaBank.utils.JwtUtil
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken

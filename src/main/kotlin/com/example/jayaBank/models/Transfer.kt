@@ -1,4 +1,4 @@
-package com.example.jayaBank.model
+package com.example.jayaBank.models
 
 import org.springframework.data.mongodb.core.mapping.Document
 import java.math.BigDecimal

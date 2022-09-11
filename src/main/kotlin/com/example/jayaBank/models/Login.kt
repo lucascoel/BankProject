@@ -1,4 +1,4 @@
-package com.example.jayaBank.model
+package com.example.jayaBank.models
 
 data class Login(
     val document: String,

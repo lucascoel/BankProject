@@ -1,9 +1,9 @@
 package com.example.jayaBank.security
 
-import com.example.jayaBank.exception.AuthenticationException
-import com.example.jayaBank.model.Login
-import com.example.jayaBank.repository.AccountRepository
-import com.example.jayaBank.util.JwtUtil
+import com.example.jayaBank.exceptions.AuthenticationException
+import com.example.jayaBank.models.Login
+import com.example.jayaBank.repositories.AccountRepository
+import com.example.jayaBank.utils.JwtUtil
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.AuthenticationManager

@@ -1,6 +1,6 @@
-package com.example.jayaBank.util
+package com.example.jayaBank.utils
 
-import com.example.jayaBank.exception.AuthenticationException
+import com.example.jayaBank.exceptions.AuthenticationException
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm

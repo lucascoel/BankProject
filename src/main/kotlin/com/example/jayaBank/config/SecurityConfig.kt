@@ -1,10 +1,10 @@
 package com.example.jayaBank.config
 
-import com.example.jayaBank.repository.AccountRepository
+import com.example.jayaBank.repositories.AccountRepository
 import com.example.jayaBank.security.AuthenticationFilter
 import com.example.jayaBank.security.AuthorizationFilter
-import com.example.jayaBank.service.UserDetailsCustomService
-import com.example.jayaBank.util.JwtUtil
+import com.example.jayaBank.services.UserDetailsCustomService
+import com.example.jayaBank.utils.JwtUtil
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod

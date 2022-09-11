@@ -1,11 +1,11 @@
-package com.example.jayaBank.service
+package com.example.jayaBank.services
 
 import com.example.jayaBank.commons.UserAuth
-import com.example.jayaBank.dto.CreateAccountDTO
-import com.example.jayaBank.exception.AccountException
-import com.example.jayaBank.model.Account
-import com.example.jayaBank.model.Rules
-import com.example.jayaBank.repository.AccountRepository
+import com.example.jayaBank.dtos.CreateAccountDTO
+import com.example.jayaBank.exceptions.AccountException
+import com.example.jayaBank.models.Account
+import com.example.jayaBank.models.Rules
+import com.example.jayaBank.repositories.AccountRepository
 import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service

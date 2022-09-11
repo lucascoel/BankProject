@@ -1,7 +1,7 @@
 package com.example.jayaBank.contaControllerTest
 
-import com.example.jayaBank.model.Account
-import com.example.jayaBank.service.UserService
+import com.example.jayaBank.models.Account
+import com.example.jayaBank.services.UserService
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.Assertions

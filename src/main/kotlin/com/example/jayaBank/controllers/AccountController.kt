@@ -1,8 +1,8 @@
-package com.example.jayaBank.controller
+package com.example.jayaBank.controllers
 
-import com.example.jayaBank.dto.TransferExtractDTO
-import com.example.jayaBank.dto.TransferDTO
-import com.example.jayaBank.service.AccountService
+import com.example.jayaBank.dtos.TransferExtractDTO
+import com.example.jayaBank.dtos.TransferDTO
+import com.example.jayaBank.services.AccountService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping

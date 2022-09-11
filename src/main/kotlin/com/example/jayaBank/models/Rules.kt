@@ -1,4 +1,4 @@
-package com.example.jayaBank.model
+package com.example.jayaBank.models
 
 enum class Rules() {
     ADMIN,
