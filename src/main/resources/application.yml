@@ -7,6 +7,6 @@ spring:
     mongodb:
       host: localhost
       port: 27017
-      database: jayabank
+      database: internationalBank
   jackson:
     property-naming-strategy: SNAKE_CASE
