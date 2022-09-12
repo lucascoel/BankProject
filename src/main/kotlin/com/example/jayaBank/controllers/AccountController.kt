@@ -15,7 +15,7 @@ import java.math.BigDecimal
 @RestController
 @RequestMapping("/account")
 class AccountController(
-    val accountService: AccountService
+    private val accountService: AccountService
 ) {
 
     @PutMapping("/deposit/{balance}")

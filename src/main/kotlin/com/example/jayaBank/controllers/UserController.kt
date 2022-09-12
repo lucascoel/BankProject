@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/user")
 class UserController(
-    val userService: UserService
+    private val userService: UserService
 ) {
 
     @PostMapping("/createAccount")

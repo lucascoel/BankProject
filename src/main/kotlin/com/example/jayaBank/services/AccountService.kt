@@ -17,8 +17,8 @@ import java.time.ZonedDateTime
 
 @Service
 class AccountService(
-    val accountRepository: AccountRepository,
-    val transferRepository: TransferRepository
+    private val accountRepository: AccountRepository,
+    private val transferRepository: TransferRepository
 ) : UserAuth {
 
     fun depositBalanceInAccontUser(valueDeposit: BigDecimal): OperationExtractDTO {

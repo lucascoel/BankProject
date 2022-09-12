@@ -15,7 +15,7 @@ import java.math.BigDecimal
 
 @Service
 class UserService(
-    val accountRepository: AccountRepository,
+    private val accountRepository: AccountRepository,
     private val bCryptPasswordEncoder: BCryptPasswordEncoder
 ) : UserAuth {
 
