@@ -2,16 +2,17 @@ package com.example.jayaBank.services
 
 import com.example.jayaBank.commons.UserAuth
 import com.example.jayaBank.dtos.OperationExtractDTO
-import com.example.jayaBank.dtos.TransferExtractDTO
 import com.example.jayaBank.dtos.TransferDTO
+import com.example.jayaBank.dtos.TransferExtractDTO
 import com.example.jayaBank.exceptions.AccountException
 import com.example.jayaBank.models.Account
-import com.example.jayaBank.models.Transfer
 import com.example.jayaBank.repositories.AccountRepository
 import com.example.jayaBank.repositories.TransferRepository
+import com.example.jayaBank.utils.ExchangeUtil
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.ZonedDateTime
 
 @Service
@@ -21,42 +22,50 @@ class AccountService(
 ) : UserAuth {
 
     fun depositBalanceInAccontUser(valueDeposit: BigDecimal): OperationExtractDTO {
-        val userAccount = accountRepository.findById(userAuthenticated)
-        val userAccountUpdated = depositBalanceInAccontUser(userAccount.get(), valueDeposit)
+        val userAccount = accountRepository.findById(userAuthenticated).get()
+        val userAccountUpdated = userAccount.depositBalanceInAccontUser(userAccount, valueDeposit)
         accountRepository.save(userAccountUpdated)
         return OperationExtractDTO(
-            previousBalance = userAccount.get().balance,
+            previousBalance = userAccount.balance,
             currentBalance = userAccountUpdated.balance
-        )
+        ).also { println("${it} success deposit") }
     }
 
     fun withdrawBalanceInAccontUser(balanceToWithdraw: BigDecimal): OperationExtractDTO {
-        val userAccount = accountRepository.findById(userAuthenticated)
-        val validacaoDeSaldo = validAccountBalance(userAccount.get(), balanceToWithdraw)
-        accountRepository.save(validacaoDeSaldo)
+        val userAccount = accountRepository.findById(userAuthenticated).get()
+        val validBalance = userAccount.validAccountBalance(userAccount, balanceToWithdraw)
+        accountRepository.save(validBalance)
         return OperationExtractDTO(
-            userAccount.get().balance,
-            validacaoDeSaldo.balance
-        )
+            userAccount.balance,
+            validBalance.balance
+        ).also { println("$it success withdraw") }
     }
 
     fun checkBalanceInAccountUser(): BigDecimal {
         val userAccount = accountRepository.findById(userAuthenticated)
+            .also { println("${it.get().document} checked balance account") }
         return userAccount.get().balance
     }
 
     fun transferBalanceBetweenAccounts(transferDTO: TransferDTO): TransferExtractDTO {
         try {
-            val userAuthenticatedAccount = accountRepository.findById(userAuthenticated)
+            val userAuthenticatedAccount = accountRepository.findById(userAuthenticated).get()
             val recipientAccount = searchDocument(transferDTO.recipientDocument)
 
-            val userAuthenticatedAccountUpdated = validAccountBalance(userAuthenticatedAccount.get(), transferDTO.value)
-            val recipientAccountUpdated = depositBalanceInAccontUser(recipientAccount, transferDTO.value)
+            val conversionRate =
+                createConversionRate(recipientAccount.coin.joinToString(), userAuthenticatedAccount.coin.joinToString())
+            val conversionValue = transferDTO.value.multiply(conversionRate)
+
+            val userAuthenticatedAccountUpdated =
+                userAuthenticatedAccount.validAccountBalance(userAuthenticatedAccount, conversionValue)
+            val recipientAccountUpdated = recipientAccount.depositBalanceInAccontUser(recipientAccount, conversionValue)
 
             return savingTransfer(
+                userAuthenticatedAccount.balance,
                 userAuthenticatedAccountUpdated,
                 recipientAccountUpdated,
-                transferDTO.value
+                conversionValue,
+                conversionRate
             )
 
         } catch (e: Exception) {
@@ -64,59 +73,63 @@ class AccountService(
         }
     }
 
-    private fun validAccountBalance(account: Account, balanceToWithdraw: BigDecimal): Account {
-        return if (account.balance >= balanceToWithdraw) {
-            val newBalance = account.balance.minus(balanceToWithdraw)
-            account.copy(balance = newBalance)
-        } else {
-            throw AccountException("insufficient funds", HttpStatus.BAD_REQUEST)
-        }
-    }
-
-    private fun depositBalanceInAccontUser(account: Account, valueDeposit: BigDecimal): Account {
-        try {
-            val newBalance = account.balance.plus(valueDeposit)
-            return account.copy(balance = newBalance)
-        } catch (e: Exception) {
-            throw AccountException("Deposit fail", HttpStatus.NOT_ACCEPTABLE)
-        }
-    }
-
     private fun searchDocument(cpf: String): Account {
         val getAccount: Account? = accountRepository.findBydocument(cpf)
+            .also { println("${it?.id} searched") }
 
         return getAccount ?: throw AccountException("Account not found", HttpStatus.NOT_FOUND)
     }
 
+    private fun createConversionRate(recipientCoin: String, userAuthenticatedCoin: String): BigDecimal {
+        val exchange = ExchangeUtil().client()
+            .also { println("${it} get exchange rate for conversion") }
+
+        return exchange!!.rates.get(recipientCoin)!!
+            .divide(
+                exchange!!.rates.get(userAuthenticatedCoin),
+                6,
+                RoundingMode.HALF_EVEN
+            )
+    }
+
     private fun savingTransfer(
+        previousBalance: BigDecimal,
         userAuthenticatedAccountUpdated: Account,
         recipientAccountUpdated: Account,
-        value: BigDecimal
+        value: BigDecimal,
+        conversionRate: BigDecimal
     ): TransferExtractDTO {
         val dateOfTransfer = ZonedDateTime.now()
 
         accountRepository.save(userAuthenticatedAccountUpdated)
-        accountRepository.save(recipientAccountUpdated)
-        val objetoTransfer = Transfer(
-            id = null,
-            name = userAuthenticatedAccountUpdated.name,
-            document = userAuthenticatedAccountUpdated.document,
-            recipientName = recipientAccountUpdated.name,
-            recipientDocument = recipientAccountUpdated.document,
-            transferValue = value,
-            dateOfTransaction = dateOfTransfer
-        )
+            .also { println("${it.id} saved after transfer") }
 
-        transferRepository.save(objetoTransfer)
+        accountRepository.save(recipientAccountUpdated)
+            .also { println("${it.id} saved after transfer") }
+
+//        val objetoTransfer = Transfer(
+//            id = null,
+//            name = userAuthenticatedAccountUpdated.name,
+//            document = userAuthenticatedAccountUpdated.document,
+//            recipientName = recipientAccountUpdated.name,
+//            recipientDocument = recipientAccountUpdated.document,
+//            transferValue = value,
+//            dateOfTransaction = dateOfTransfer
+//        )
+//
+//        transferRepository.save(objetoTransfer)
 
         return TransferExtractDTO(
             transferValue = value,
-            previousBalance = userAuthenticatedAccountUpdated.balance,
+            conversionRate = conversionRate,
+            previousBalance = previousBalance,
             currentBalance = userAuthenticatedAccountUpdated.balance,
             recipient = recipientAccountUpdated.name,
             recipientDocument = recipientAccountUpdated.document,
+            recipientCoin = recipientAccountUpdated.coin.joinToString(),
+            originCoin = userAuthenticatedAccountUpdated.coin.joinToString(),
             dateOfTransaction = dateOfTransfer
-        )
+        ).also { println(it) }
     }
 
 }
