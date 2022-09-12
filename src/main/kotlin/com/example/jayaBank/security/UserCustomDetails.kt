@@ -10,7 +10,7 @@ class UserCustomDetails(
 ): UserDetails {
     val id = account.id
 
-    override fun getAuthorities(): MutableCollection<out GrantedAuthority> = account.Rule.map { SimpleGrantedAuthority(it.name) }.toMutableList()
+    override fun getAuthorities(): MutableCollection<out GrantedAuthority> = account.rule.map { SimpleGrantedAuthority(it.name) }.toMutableList()
 
     override fun getPassword(): String = account.password
 
