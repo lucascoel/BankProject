@@ -1,5 +1,7 @@
 package com.example.jayaBank.models
 
+import com.example.jayaBank.exceptions.AccountException
+import org.springframework.http.HttpStatus
 import java.math.BigDecimal
 
 data class Account(
@@ -8,6 +10,25 @@ data class Account(
     val document: String,
     val password: String,
     val balance: BigDecimal,
-    val Rule: Set<Rules> = setOf()
+    val rule: Set<Rules> = setOf(),
+    val coin: Set<Coin> = setOf()
 ) {
+
+    fun validAccountBalance(account: Account, balanceToWithdraw: BigDecimal): Account {
+        return if (account.balance >= balanceToWithdraw) {
+            val newBalance = account.balance.minus(balanceToWithdraw)
+            account.copy(balance = newBalance)
+        } else {
+            throw AccountException("insufficient funds", HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    fun depositBalanceInAccontUser(account: Account, valueDeposit: BigDecimal): Account {
+        try {
+            val newBalance = account.balance.plus(valueDeposit)
+            return account.copy(balance = newBalance)
+        } catch (e: Exception) {
+            throw AccountException("Deposit fail", HttpStatus.NOT_ACCEPTABLE)
+        }
+    }
 }
