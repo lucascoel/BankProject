@@ -23,5 +23,5 @@ class UserController(
     fun updateAccount(@RequestBody account: Account): Account = userService.updateUserAccount(account)
 
     @GetMapping("/searchAccount")
-    fun searchAccount(): Account? = userService.searchUserAccount()
+    fun searchAccount() = userService.searchUserAccount()
 }
