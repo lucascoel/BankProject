@@ -1,5 +1,7 @@
 package com.example.jayaBank.serviceImpTest
 
+import com.example.jayaBank.JayaBankApplication
+import com.example.jayaBank.dtos.CreateAccountDTO
 import com.example.jayaBank.exceptions.AccountException
 import com.example.jayaBank.models.Account
 import com.example.jayaBank.repositories.AccountRepository
@@ -13,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ServiceImpTests {
 
     @Autowired
@@ -24,13 +26,13 @@ class ServiceImpTests {
     @Test
     fun `test de criar conta para retornar conta criada com sucesso status 200`(){
 
-        val request = Account(name = "Lucas", document = "191", password = "123", balance = BigDecimal.ZERO)
+        val request = CreateAccountDTO(name = "Lucas", document = "191", password = "123", coin = "BRL")
         val response = Account(id = "FOO",name = "Lucas", document = "191", password = "123", balance = BigDecimal.ZERO)
 
-        every { accountRepository.findBycpf(Any() as String) } returns null
+        every { accountRepository.findBydocument(Any() as String) } returns null
         every { accountRepository.save(Any() as Account) } returns response
 
-        val exec = userService.criarConta(request)
+        val exec = userService.createUserAccount(request)
 
         assertEquals(response, exec)
 
@@ -39,11 +41,12 @@ class ServiceImpTests {
     @Test
     fun `test de criar conta para retornar conta ja existente 400`(){
 
-        val request = Account(name = "Lucas", document = "191", password = "123", balance = BigDecimal.ZERO)
+        val request = CreateAccountDTO(name = "Lucas", document = "191", password = "123", coin = "BRL")
+        val response = Account(id = "FOO",name = "Lucas", document = "191", password = "123", balance = BigDecimal.ZERO)
 
-        every { accountRepository.findBycpf(Any() as String) } returns request
+        every { accountRepository.findBydocument(Any() as String) } returns response
 
-        assertThrows<AccountException> { userService.criarConta(request) }
+        assertThrows<AccountException> { userService.createUserAccount(request) }
 
     }
 
@@ -53,10 +56,10 @@ class ServiceImpTests {
         val request = Account(name = "Lucas", document = "191", password = "123", balance = BigDecimal.ZERO)
         val response = Account(id = "FOO",name = "Lucas", document = "191", password = "123", balance = BigDecimal.ZERO)
 
-        every { accountRepository.findBycpf(Any() as String) } returns request
+        every { accountRepository.findBydocument(Any() as String) } returns request
         every { accountRepository.save(Any() as Account) } returns response
 
-        val exec = userService.atualizarConta(request)
+        val exec = userService.updateUserAccount(request)
 
         assertEquals(response, exec)
 
@@ -67,9 +70,9 @@ class ServiceImpTests {
 
         val request = Account(name = "Lucas", document = "191", password = "123", balance = BigDecimal.ZERO)
 
-        every { accountRepository.findBycpf(Any() as String) } returns null
+        every { accountRepository.findBydocument(Any() as String) } returns null
 
-        assertThrows<AccountException> { userService.atualizarConta(request) }
+        assertThrows<AccountException> { userService.updateUserAccount(request) }
 
     }
 
