@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.util.*
 
 @Service
 class UserService(
@@ -49,7 +50,13 @@ class UserService(
     }
 
     fun searchUserAccount(): AccountResponseDTO {
-        val getAccount: Account = accountRepository.findById(userAuthenticated).get()
-        return AccountResponseDTO(getAccount.name, getAccount.document, getAccount.balance, getAccount.coin)
+        val getAccount: Optional<Account> = accountRepository.findById(userAuthenticated)
+        return if(getAccount.isEmpty){
+            throw AccountException("Account not found", HttpStatus.NOT_FOUND)
+        } else{
+            val account = getAccount.get()
+            AccountResponseDTO(account.name, account.document, account.balance, account.coin)
+        }
+
     }
 }
