@@ -26,10 +26,10 @@ dependencies {
 	implementation("io.jsonwebtoken:jjwt:0.9.1")
 	implementation ("jakarta.xml.bind:jakarta.xml.bind-api:2.3.2")
 	implementation ("org.glassfish.jaxb:jaxb-runtime:2.3.2")
+	implementation("javax.validation:validation-api:2.0.1.Final")
 	testImplementation("com.ninja-squad:springmockk:3.1.1")
 	testImplementation("io.mockk:mockk:1.12.4")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo")
 }
 
 tasks.withType<KotlinCompile> {
