@@ -1,9 +1,12 @@
+jwt:
+  secret: d89b96ad-1ca7-4401-932d-856a83864cd8
+  expiration: 9999999
 
 spring:
   data:
     mongodb:
       host: localhost
       port: 27017
-      database: jaya
+      database: test
   jackson:
     property-naming-strategy: SNAKE_CASE
