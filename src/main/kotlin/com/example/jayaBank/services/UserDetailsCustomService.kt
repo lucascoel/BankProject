@@ -14,7 +14,7 @@ class UserDetailsCustomService(
 ): UserDetailsService {
     override fun loadUserByUsername(id: String): UserDetails {
         val account = accountRepository.findById(id)
-            .orElseThrow{ AuthenticationException("Falha no login", HttpStatus.UNAUTHORIZED) }
+            .orElseThrow{ AuthenticationException("user not found", HttpStatus.UNAUTHORIZED) }
         return UserCustomDetails(account)
     }
 }
