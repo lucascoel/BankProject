@@ -5,6 +5,7 @@ import com.example.jayaBank.dtos.OperationExtractDTO
 import com.example.jayaBank.dtos.TransferDTO
 import com.example.jayaBank.dtos.TransferExtractDTO
 import com.example.jayaBank.exceptions.AccountException
+import com.example.jayaBank.exceptions.NotFoundException
 import com.example.jayaBank.models.Account
 import com.example.jayaBank.repositories.AccountRepository
 import com.example.jayaBank.repositories.TransferRepository
@@ -33,7 +34,7 @@ class AccountService(
 
     fun withdrawBalanceInAccontUser(balanceToWithdraw: BigDecimal): OperationExtractDTO {
         val userAccount = accountRepository.findById(userAuthenticated).get()
-        val validBalance = userAccount.validAccountBalance(userAccount, balanceToWithdraw)
+        val validBalance = userAccount.withdrawAccountBalance(userAccount, balanceToWithdraw)
         accountRepository.save(validBalance)
         return OperationExtractDTO(
             userAccount.balance,
@@ -57,7 +58,7 @@ class AccountService(
             val conversionValue = transferDTO.value.multiply(conversionRate)
 
             val userAuthenticatedAccountUpdated =
-                userAuthenticatedAccount.validAccountBalance(userAuthenticatedAccount, conversionValue)
+                userAuthenticatedAccount.withdrawAccountBalance(userAuthenticatedAccount, conversionValue)
             val recipientAccountUpdated = recipientAccount.depositBalanceInAccontUser(recipientAccount, conversionValue)
 
             return savingTransfer(
@@ -68,7 +69,7 @@ class AccountService(
                 conversionRate
             )
 
-        } catch (e: Exception) {
+        } catch (e: AccountException) {
             throw AccountException("Transfer fail", HttpStatus.BAD_REQUEST)
         }
     }
@@ -77,17 +78,17 @@ class AccountService(
         val getAccount: Account? = accountRepository.findBydocument(cpf)
             .also { println("${it?.id} searched") }
 
-        return getAccount ?: throw AccountException("Account not found", HttpStatus.NOT_FOUND)
+        return getAccount ?: throw NotFoundException("Account not found", HttpStatus.NOT_FOUND)
     }
 
     private fun createConversionRate(recipientCoin: String, userAuthenticatedCoin: String): BigDecimal {
         val exchange = ExchangeUtil().client()
             .also { println("${it} get exchange rate for conversion") }
 
-        return exchange!!.rates.get(recipientCoin)!!
+        return exchange!!.rates[recipientCoin]!!
             .divide(
-                exchange!!.rates.get(userAuthenticatedCoin),
-                6,
+                exchange!!.rates[userAuthenticatedCoin],
+                2,
                 RoundingMode.HALF_EVEN
             )
     }
