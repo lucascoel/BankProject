@@ -1,10 +1,11 @@
 package com.example.jayaBank.contaControllerTest
 
-import com.example.jayaBank.models.Account
+import com.example.jayaBank.mocks.AccountMocks
 import com.example.jayaBank.services.UserService
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import org.junit.jupiter.api.Assertions
+import com.ninjasquad.springmockk.MockkBean
+import io.mockk.every
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -14,7 +15,6 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import java.math.BigDecimal
 
 @AutoConfigureMockMvc
 @SpringBootTest
@@ -23,25 +23,48 @@ class UserControllerTests {
     @Autowired
     lateinit var mockMvc: MockMvc
 
-    @Autowired
+    @MockkBean
     lateinit var userService: UserService
 
     @Test
-    fun `teste pra dar certo`() {
-        val mapper = jacksonObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-        val test = Account(name = "Lucas", password = "123", balance = BigDecimal.ZERO, document = "191")
-        val requestJson = mapper.writeValueAsString(test)
+    fun `should correct call, when payload is correct, returns created`() {
+        val test = AccountMocks.createAccontSuccess()
+        val requestJson = jacksonObjectMapper().writeValueAsString(test)
+        val response = AccountMocks.createAccountSuccessResponse()
+
+        every { userService.createUserAccount(any()) } returns response
 
         val request = mockMvc.perform(
             MockMvcRequestBuilders
-                .post("/criar")
+                .post("/user/createAccount")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson)
         )
             .andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
             .andReturn().response
 
-        Assertions.assertEquals(HttpStatus.OK.value(), request.status)
+        assertEquals(HttpStatus.CREATED.value(), request.status)
+    }
+
+    @Test
+    fun `should update account, when payload correct and account exist, return ok`() {
+        val account = AccountMocks.accountCreated()
+        val requestJson = jacksonObjectMapper().writeValueAsString(account)
+
+
+        every { userService.updateUserAccount(any()) } returns account
+
+        val request = mockMvc.perform(
+            MockMvcRequestBuilders
+                .put("/user/updateAccount")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        )
+
+        val exec =
+            request.andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
+            .andReturn().response
+        assertEquals(HttpStatus.OK.value(), exec.status)
     }
 
 }
