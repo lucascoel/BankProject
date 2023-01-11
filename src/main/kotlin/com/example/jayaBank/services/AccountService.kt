@@ -22,34 +22,27 @@ class AccountService(
     private val transferRepository: TransferRepository
 ) : UserAuth {
 
-    fun depositBalanceInAccontUser(valueDeposit: BigDecimal): OperationExtractDTO {
-        val userAccount = accountRepository.findById(userAuthenticated).get()
-        val userAccountUpdated = userAccount.depositBalanceInAccontUser(userAccount, valueDeposit)
-        accountRepository.save(userAccountUpdated)
-        return OperationExtractDTO(
-            previousBalance = userAccount.balance,
-            currentBalance = userAccountUpdated.balance
-        ).also { println("${it} success deposit") }
-    }
+    fun depositBalanceInAccontUser(valueDeposit: BigDecimal) =
+        accountRepository.findByUserAuthenticated(userAuthenticated)
+            .depositBalanceInAccontUser(valueDeposit)
+            .let { accountRepository.save(it) }
 
-    fun withdrawBalanceInAccontUser(balanceToWithdraw: BigDecimal): OperationExtractDTO {
-        val userAccount = accountRepository.findById(userAuthenticated).get()
-        val validBalance = userAccount.withdrawAccountBalance(userAccount, balanceToWithdraw)
-        accountRepository.save(validBalance)
-        return OperationExtractDTO(
-            userAccount.balance,
-            validBalance.balance
-        ).also { println("$it success withdraw") }
-    }
+    fun withdrawBalanceInAccontUser(balanceToWithdraw: BigDecimal): OperationExtractDTO =
+        accountRepository.findById(userAuthenticated)
+            .get()
+            .withdrawAccountBalance(balanceToWithdraw)
+            .let { accountRepository.save(it) }
+            .run { toOperationExtract(this) }
+            .also { println("$it success withdraw") }
 
-    fun checkBalanceInAccountUser(): BigDecimal {
-        val userAccount = accountRepository.findById(userAuthenticated)
-            .also { println("${it.get().document} checked balance account") }
-        return userAccount.get().balance
-    }
+    fun checkBalanceInAccountUser() =
+        accountRepository.findByUserAuthenticated(userAuthenticated)
+            .let { it.balance }
+            .also { println("${it} checked balance account") }
 
     fun transferBalanceBetweenAccounts(transferDTO: TransferDTO): TransferExtractDTO {
         try {
+
             val userAuthenticatedAccount = accountRepository.findById(userAuthenticated).get()
             val recipientAccount = searchDocument(transferDTO.recipientDocument)
 
@@ -58,8 +51,8 @@ class AccountService(
             val conversionValue = transferDTO.value.multiply(conversionRate)
 
             val userAuthenticatedAccountUpdated =
-                userAuthenticatedAccount.withdrawAccountBalance(userAuthenticatedAccount, conversionValue)
-            val recipientAccountUpdated = recipientAccount.depositBalanceInAccontUser(recipientAccount, conversionValue)
+                userAuthenticatedAccount.withdrawAccountBalance(conversionValue)
+            val recipientAccountUpdated = recipientAccount.depositBalanceInAccontUser(conversionValue)
 
             return savingTransfer(
                 userAuthenticatedAccount.balance,
@@ -74,16 +67,15 @@ class AccountService(
         }
     }
 
-    private fun searchDocument(cpf: String): Account {
-        val getAccount: Account? = accountRepository.findBydocument(cpf)
-            .also { println("${it?.id} searched") }
+    private fun searchDocument(cpf: String) =
+        accountRepository.findBydocument(cpf)?.also { println("${it.id} searched") }
+            ?: throw NotFoundException("Account not found", HttpStatus.NOT_FOUND)
+                .also { println(it.cause?.message) }
 
-        return getAccount ?: throw NotFoundException("Account not found", HttpStatus.NOT_FOUND)
-    }
 
     private fun createConversionRate(recipientCoin: String, userAuthenticatedCoin: String): BigDecimal {
         val exchange = ExchangeUtil().client()
-            .also { println("${it} get exchange rate for conversion") }
+            .also { println("${it?.success} get exchange rate for conversion") }
 
         return exchange!!.rates[recipientCoin]!!
             .divide(
@@ -92,6 +84,13 @@ class AccountService(
                 RoundingMode.HALF_EVEN
             )
     }
+
+    private fun toOperationExtract(account: Account) =
+        OperationExtractDTO(
+            BigDecimal.ZERO,
+            BigDecimal.ZERO
+        )
+
 
     private fun savingTransfer(
         previousBalance: BigDecimal,
