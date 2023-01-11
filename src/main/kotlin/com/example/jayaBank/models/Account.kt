@@ -1,35 +1,48 @@
 package com.example.jayaBank.models
 
+import com.example.jayaBank.dtos.CreateAccountDTO
 import com.example.jayaBank.exceptions.AccountException
 import com.example.jayaBank.exceptions.NotBalanceException
 import org.springframework.http.HttpStatus
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import java.math.BigDecimal
 
-data class Account(
-    val id: String? = null,
+class Account(
+    id: String?,
     val name: String,
     val document: String,
     val password: String,
-    val balance: BigDecimal,
+    balance: BigDecimal,
     val rule: Set<Rules> = setOf(),
     val coin: Set<Coin> = setOf()
 ) {
-
-    fun withdrawAccountBalance(account: Account, balanceToWithdraw: BigDecimal): Account {
-        return if (account.balance >= balanceToWithdraw) {
-            val newBalance = account.balance.minus(balanceToWithdraw)
-            account.copy(balance = newBalance)
-        } else {
-            throw NotBalanceException("insufficient funds", HttpStatus.BAD_REQUEST)
+    var balance = balance
+        private set
+    var id = id
+        private set
+    fun withdrawAccountBalance(balanceToWithdraw: BigDecimal) =
+        also {
+            this.takeUnless { balance >= balanceToWithdraw }
+                ?.let { balance -= balanceToWithdraw }
+                ?: throw NotBalanceException("insufficient funds", HttpStatus.BAD_REQUEST)
         }
-    }
 
-    fun depositBalanceInAccontUser(account: Account, valueDeposit: BigDecimal): Account {
-        try {
-            val newBalance = account.balance.plus(valueDeposit)
-            return account.copy(balance = newBalance)
-        } catch (e: Exception) {
-            throw AccountException("Deposit fail", HttpStatus.BAD_REQUEST)
+    fun depositBalanceInAccontUser(valueDeposit: BigDecimal) =
+        also {
+            this.takeUnless { valueDeposit <= BigDecimal.ZERO }
+                ?.let { balance += valueDeposit }
+                ?: throw AccountException("insufficient funds", HttpStatus.BAD_REQUEST)
         }
-    }
+
+    fun createAccount(account: CreateAccountDTO, bCryptPasswordEncoder: BCryptPasswordEncoder) = Account(
+        id = null,
+        name = account.name,
+        document = account.document,
+        password = bCryptPasswordEncoder.encode(account.password),
+        balance = BigDecimal.ZERO,
+        rule = setOf(Rules.USER),
+        coin = setOf(Coin.valueOf(account.coin))
+    )
+    fun updateAccount(idUpdate: String) = this.apply { id = idUpdate }
+
 }
