@@ -34,6 +34,13 @@ class Account(
                 ?: throw AccountException("insufficient funds", HttpStatus.BAD_REQUEST)
         }
 
+    fun transfer(value: BigDecimal, recipientAccount: Account) =
+        this.takeUnless { value <= BigDecimal.ZERO }.let {
+            this.withdrawAccountBalance(value)
+            recipientAccount.depositBalanceInAccontUser(value)
+            "Success Transfer"
+        }
+
     fun createAccount(account: CreateAccountDTO, bCryptPasswordEncoder: BCryptPasswordEncoder) = Account(
         id = null,
         name = account.name,

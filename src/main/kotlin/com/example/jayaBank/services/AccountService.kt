@@ -40,31 +40,14 @@ class AccountService(
             .let { it.balance }
             .also { println("${it} checked balance account") }
 
-    fun transferBalanceBetweenAccounts(transferDTO: TransferDTO): TransferExtractDTO {
-        try {
+    fun transferBalanceBetweenAccounts(transferDTO: TransferDTO): String {
+        val userAuthenticatedAccount = accountRepository.findById(userAuthenticated).get()
+        val recipientAccount = searchDocument(transferDTO.recipientDocument)
 
-            val userAuthenticatedAccount = accountRepository.findById(userAuthenticated).get()
-            val recipientAccount = searchDocument(transferDTO.recipientDocument)
+        val conversionRate =
+            createConversionRate(recipientAccount.coin.joinToString(), userAuthenticatedAccount.coin.joinToString())
 
-            val conversionRate =
-                createConversionRate(recipientAccount.coin.joinToString(), userAuthenticatedAccount.coin.joinToString())
-            val conversionValue = transferDTO.value.multiply(conversionRate)
-
-            val userAuthenticatedAccountUpdated =
-                userAuthenticatedAccount.withdrawAccountBalance(conversionValue)
-            val recipientAccountUpdated = recipientAccount.depositBalanceInAccontUser(conversionValue)
-
-            return savingTransfer(
-                userAuthenticatedAccount.balance,
-                userAuthenticatedAccountUpdated,
-                recipientAccountUpdated,
-                conversionValue,
-                conversionRate
-            )
-
-        } catch (e: AccountException) {
-            throw AccountException("Transfer fail", HttpStatus.BAD_REQUEST)
-        }
+        return userAuthenticatedAccount.transfer(transferDTO.value.multiply(conversionRate), recipientAccount)
     }
 
     private fun searchDocument(cpf: String) =
