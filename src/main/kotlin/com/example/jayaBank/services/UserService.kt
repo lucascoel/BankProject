@@ -17,46 +17,26 @@ import java.util.*
 @Service
 class UserService(
     private val accountRepository: AccountRepository,
-    private val bCryptPasswordEncoder: BCryptPasswordEncoder
+    private val bCryptPasswordEncoder: BCryptPasswordEncoder,
+    private val newAccount: Account
 ) : UserAuth {
+    fun createUserAccount(account: CreateAccountDTO) =
+        accountRepository.findBydocument(account.document)
+            .takeUnless { it?.document.isNullOrBlank() }
+            ?.runCatching { throw AccountException("Account exist", HttpStatus.BAD_REQUEST) }
+            ?: newAccount.createAccount(account, bCryptPasswordEncoder).let { accountRepository.save(it) }
 
-    fun createUserAccount(account: CreateAccountDTO): AccountResponseDTO {
-        val getAccount: Account? = accountRepository.findBydocument(account.document)
-        val newAccount = Account(
-            name = account.name,
-            document = account.document,
-            balance = BigDecimal.ZERO,
-            rule = setOf(Rules.USER),
-            password = bCryptPasswordEncoder.encode(account.password),
-            coin = setOf(Coin.valueOf(account.coin))
-        )
 
-        return if (getAccount == null) {
-            accountRepository.save(newAccount)
-            AccountResponseDTO(newAccount.name, newAccount.document, newAccount.balance, newAccount.coin)
-        } else {
-            throw AccountException("Account exist", HttpStatus.BAD_REQUEST)
-        }
-    }
+    fun updateUserAccount(account: Account): Account =
+        accountRepository.findBydocument(account.document)
+            .takeUnless { it?.document == null }
+            ?.let { accountRepository.save(account.updateAccount(it.id!!)) }
+            ?: throw AccountException("Account not found", HttpStatus.NOT_FOUND)
 
-    fun updateUserAccount(account: Account): Account {
-        val getAccount: Account? = accountRepository.findBydocument(account.document)
 
-        return if (getAccount == null) {
-            throw AccountException("Account not found", HttpStatus.NOT_FOUND)
-        } else {
-            accountRepository.save(account.copy(id = getAccount.id))
-        }
-    }
+    fun searchUserAccount(): AccountResponseDTO =
+        accountRepository.findByUserAuthenticated(userAuthenticated)
+            .let { AccountResponseDTO(it.name, it.document, it.balance, it.coin) }
 
-    fun searchUserAccount(): AccountResponseDTO {
-        val getAccount: Optional<Account> = accountRepository.findById(userAuthenticated)
-        return if(getAccount.isEmpty){
-            throw AccountException("Account not found", HttpStatus.NOT_FOUND)
-        } else{
-            val account = getAccount.get()
-            AccountResponseDTO(account.name, account.document, account.balance, account.coin)
-        }
 
-    }
 }
