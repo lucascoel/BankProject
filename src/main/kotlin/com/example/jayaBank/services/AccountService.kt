@@ -18,77 +18,77 @@ import java.time.ZonedDateTime
 
 @Service
 class AccountService(
-    private val accountRepository: AccountRepository,
-    private val transferRepository: TransferRepository
+        private val accountRepository: AccountRepository,
+        private val transferRepository: TransferRepository
 ) : UserAuth {
 
     fun depositBalanceInAccontUser(valueDeposit: BigDecimal) =
-        accountRepository.findByUserAuthenticated(userAuthenticated)
-            .depositBalanceInAccontUser(valueDeposit)
-            .let { accountRepository.save(it) }
+            accountRepository.findByUserId(userAuthenticated)
+                    .depositBalanceInAccontUser(valueDeposit)
+                    .let { accountRepository.save(it) }
+                    .run { toOperationExtract(this, this.balance.minus(valueDeposit)) }
 
     fun withdrawBalanceInAccontUser(balanceToWithdraw: BigDecimal): OperationExtractDTO =
-        accountRepository.findById(userAuthenticated)
-            .get()
-            .withdrawAccountBalance(balanceToWithdraw)
-            .let { accountRepository.save(it) }
-            .run { toOperationExtract(this) }
-            .also { println("$it success withdraw") }
+            accountRepository.findByUserId(userAuthenticated)
+                    .withdrawAccountBalance(balanceToWithdraw)
+                    .let { accountRepository.save(it) }
+                    .run { toOperationExtract(this, this.balance.plus(balanceToWithdraw)) }
+                    .also { println("$it success withdraw") }
 
     fun checkBalanceInAccountUser() =
-        accountRepository.findByUserAuthenticated(userAuthenticated)
-            .let { it.balance }
-            .also { println("${it} checked balance account") }
+            accountRepository.findByUserId(userAuthenticated)
+                    .let { it.balance }
+                    .also { println("${it} checked balance account") }
 
     fun transferBalanceBetweenAccounts(transferDTO: TransferDTO): String {
-        val userAuthenticatedAccount = accountRepository.findById(userAuthenticated).get()
+        val userAuthenticatedAccount = accountRepository.findByUserId(userAuthenticated)
         val recipientAccount = searchDocument(transferDTO.recipientDocument)
 
         val conversionRate =
-            createConversionRate(recipientAccount.coin.joinToString(), userAuthenticatedAccount.coin.joinToString())
+                createConversionRate(recipientAccount.coin.joinToString(), userAuthenticatedAccount.coin.joinToString())
 
         return userAuthenticatedAccount.transfer(transferDTO.value.multiply(conversionRate), recipientAccount)
     }
 
     private fun searchDocument(cpf: String) =
-        accountRepository.findBydocument(cpf)?.also { println("${it.id} searched") }
-            ?: throw NotFoundException("Account not found", HttpStatus.NOT_FOUND)
-                .also { println(it.cause?.message) }
+            accountRepository.findBydocument(cpf)?.also { println("${it.userId} searched") }
+                    ?: throw NotFoundException("Account not found", HttpStatus.NOT_FOUND)
+                            .also { println(it.cause?.message) }
 
 
     private fun createConversionRate(recipientCoin: String, userAuthenticatedCoin: String): BigDecimal {
         val exchange = ExchangeUtil().client()
-            .also { println("${it?.success} get exchange rate for conversion") }
+                .also { println("${it?.success} get exchange rate for conversion") }
 
         return exchange!!.rates[recipientCoin]!!
-            .divide(
-                exchange!!.rates[userAuthenticatedCoin],
-                2,
-                RoundingMode.HALF_EVEN
-            )
+                .divide(
+                        exchange!!.rates[userAuthenticatedCoin],
+                        2,
+                        RoundingMode.HALF_EVEN
+                )
     }
 
-    private fun toOperationExtract(account: Account) =
-        OperationExtractDTO(
-            BigDecimal.ZERO,
-            BigDecimal.ZERO
-        )
+    private fun toOperationExtract(account: Account, balance: BigDecimal) =
+            OperationExtractDTO(
+                    balance,
+                    account.balance
+            )
 
 
     private fun savingTransfer(
-        previousBalance: BigDecimal,
-        userAuthenticatedAccountUpdated: Account,
-        recipientAccountUpdated: Account,
-        value: BigDecimal,
-        conversionRate: BigDecimal
+            previousBalance: BigDecimal,
+            userAuthenticatedAccountUpdated: Account,
+            recipientAccountUpdated: Account,
+            value: BigDecimal,
+            conversionRate: BigDecimal
     ): TransferExtractDTO {
         val dateOfTransfer = ZonedDateTime.now()
 
         accountRepository.save(userAuthenticatedAccountUpdated)
-            .also { println("${it.id} saved after transfer") }
+                .also { println("${it.userId} saved after transfer") }
 
         accountRepository.save(recipientAccountUpdated)
-            .also { println("${it.id} saved after transfer") }
+                .also { println("${it.userId} saved after transfer") }
 
 //        val objetoTransfer = Transfer(
 //            id = null,
@@ -103,15 +103,15 @@ class AccountService(
 //        transferRepository.save(objetoTransfer)
 
         return TransferExtractDTO(
-            transferValue = value,
-            conversionRate = conversionRate,
-            previousBalance = previousBalance,
-            currentBalance = userAuthenticatedAccountUpdated.balance,
-            recipient = recipientAccountUpdated.name,
-            recipientDocument = recipientAccountUpdated.document,
-            recipientCoin = recipientAccountUpdated.coin.joinToString(),
-            originCoin = userAuthenticatedAccountUpdated.coin.joinToString(),
-            dateOfTransaction = dateOfTransfer
+                transferValue = value,
+                conversionRate = conversionRate,
+                previousBalance = previousBalance,
+                currentBalance = userAuthenticatedAccountUpdated.balance,
+                recipient = recipientAccountUpdated.name,
+                recipientDocument = recipientAccountUpdated.document,
+                recipientCoin = recipientAccountUpdated.coin.joinToString(),
+                originCoin = userAuthenticatedAccountUpdated.coin.joinToString(),
+                dateOfTransaction = dateOfTransfer
         ).also { println(it) }
     }
 

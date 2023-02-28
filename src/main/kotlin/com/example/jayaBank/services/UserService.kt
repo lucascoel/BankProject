@@ -17,25 +17,23 @@ import java.util.*
 @Service
 class UserService(
     private val accountRepository: AccountRepository,
-    private val bCryptPasswordEncoder: BCryptPasswordEncoder,
-    private val newAccount: Account
+    private val bCryptPasswordEncoder: BCryptPasswordEncoder
 ) : UserAuth {
     fun createUserAccount(account: CreateAccountDTO) =
         accountRepository.findBydocument(account.document)
-            .takeUnless { it?.document.isNullOrBlank() }
+            .takeUnless { it?.document == null }
             ?.runCatching { throw AccountException("Account exist", HttpStatus.BAD_REQUEST) }
-            ?: newAccount.createAccount(account, bCryptPasswordEncoder).let { accountRepository.save(it) }
-
+            ?: Account.createAccount(account, bCryptPasswordEncoder).let { accountRepository.save(it) }.also{ print("alou") }
 
     fun updateUserAccount(account: Account): Account =
         accountRepository.findBydocument(account.document)
             .takeUnless { it?.document == null }
-            ?.let { accountRepository.save(account.updateAccount(it.id!!)) }
+            ?.let { accountRepository.save(account.updateAccount(it.userId!!)) }
             ?: throw AccountException("Account not found", HttpStatus.NOT_FOUND)
 
 
     fun searchUserAccount(): AccountResponseDTO =
-        accountRepository.findByUserAuthenticated(userAuthenticated)
+        accountRepository.findByUserId(userAuthenticated)
             .let { AccountResponseDTO(it.name, it.document, it.balance, it.coin) }
 
 

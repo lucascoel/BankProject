@@ -24,7 +24,7 @@ class AuthenticationFilter(
     override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication {
         try {
             val loginRequest = jacksonObjectMapper().readValue(request.inputStream, Login::class.java)
-            val account = accountRepository.findBydocument(loginRequest.document)?.id
+            val account = accountRepository.findBydocument(loginRequest.document)?.userId
             val authToken = UsernamePasswordAuthenticationToken(account, loginRequest.password)
             return authenticationManager.authenticate(authToken)
         }catch (e: Exception){

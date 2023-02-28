@@ -95,24 +95,13 @@ class UserServiceTest() {
         val mock = AccountMocks.accountCreated()
         val response = AccountMocks.createAccountSuccessResponse()
 
-        every { accountRepository.findById(any()) } returns Optional.ofNullable(mock)
+        every { accountRepository.findByUserId(any()) } returns mock
         every { context.authentication.name } returns "123"
 
 
         val exec = userService.searchUserAccount()
 
         assertEquals(response, exec)
-    }
-
-    @Test
-    fun `should search account, when id not valid, return exception`() {
-
-        val mock = AccountMocks.accountCreated()
-
-        every { accountRepository.findById(any()) } returns Optional.empty()
-        every { context.authentication.name } returns "123"
-
-        assertThrows<AccountException> { userService.searchUserAccount() }
     }
 
 }

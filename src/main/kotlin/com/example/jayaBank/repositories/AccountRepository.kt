@@ -8,6 +8,6 @@ import java.util.*
 @Repository
 interface AccountRepository: MongoRepository<Account, String>{
     fun findBydocument(document: String): Account?
-    fun findByUserAuthenticated(id: String): Account
+    fun findByUserId(id: String): Account
 
 }

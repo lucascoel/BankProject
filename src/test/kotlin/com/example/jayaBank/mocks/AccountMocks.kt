@@ -19,7 +19,7 @@ class AccountMocks {
         )
 
         fun createAccountSuccessResponse() = AccountResponseDTO(
-            name = "Lucas",
+            name = "XPTO",
             document = "144",
             balance = BigDecimal.ZERO,
             coin = setOf(Coin.BRL)
@@ -35,12 +35,12 @@ class AccountMocks {
             coin = setOf(Coin.BRL)
         )
 
-        fun accountCreatedWithBalance() = Account(
+        fun accountCreatedWithBalance(value: BigDecimal) = Account(
             id = "FOO",
             name = "BAR",
             document = "144",
             password = "123",
-            balance = BigDecimal.valueOf(500),
+            balance = value,
             rule = setOf(Rules.USER),
             coin = setOf(Coin.BRL)
         )

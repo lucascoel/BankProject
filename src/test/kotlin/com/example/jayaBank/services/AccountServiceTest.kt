@@ -47,13 +47,13 @@ class AccountServiceTest() {
     fun `when deposit balance in account, return succes`() {
         val mock = AccountMocks.accountCreated()
         val addBalance = BigDecimal.valueOf(100)
-        val response = mock.copy(balance = mock.balance.plus(addBalance))
+        val response = AccountMocks.accountCreatedWithBalance(addBalance)
         val extract = OperationExtractDTO(
             previousBalance = mock.balance,
             currentBalance = response.balance
         )
 
-        every { accountRepository.findById(any()) } returns Optional.ofNullable(mock)
+        every { accountRepository.findByUserId(any()) } returns mock
         every { context.authentication.name } returns "123"
         every { accountRepository.save(any()) } returns response
 
@@ -64,15 +64,15 @@ class AccountServiceTest() {
 
     @Test
     fun `when withdraw balance in account, return success`() {
-        val mock = AccountMocks.accountCreatedWithBalance()
+        val mock = AccountMocks.accountCreatedWithBalance(BigDecimal.valueOf(500.00))
         val withdrawValue = BigDecimal.valueOf(100)
-        val response = mock.copy(balance = mock.balance.minus(withdrawValue))
+        val response = AccountMocks.accountCreatedWithBalance(BigDecimal.valueOf(400.00))
         val extract = OperationExtractDTO(
             previousBalance = mock.balance,
             currentBalance = response.balance
         )
 
-        every { accountRepository.findById(any()) } returns Optional.ofNullable(mock)
+        every { accountRepository.findByUserId(any()) } returns mock
         every { context.authentication.name } returns "123"
         every { accountRepository.save(any()) } returns response
 
@@ -86,7 +86,7 @@ class AccountServiceTest() {
         val mock = AccountMocks.accountCreated()
         val withdrawValue = BigDecimal.valueOf(100)
 
-        every { accountRepository.findById(any()) } returns Optional.ofNullable(mock)
+        every { accountRepository.findByUserId(any()) } returns mock
         every { context.authentication.name } returns "123"
 
         assertThrows<NotBalanceException> { accountService.withdrawBalanceInAccontUser(withdrawValue) }
@@ -95,22 +95,8 @@ class AccountServiceTest() {
     @Test
     fun `when seen balance in account, return balance in account user`() {
         val mock = AccountMocks.accountCreated()
-        val withdrawValue = BigDecimal.valueOf(100)
 
-        every { accountRepository.findById(any()) } returns Optional.ofNullable(mock)
-        every { context.authentication.name } returns "123"
-
-        val exec = accountService.checkBalanceInAccountUser()
-
-        assertNotNull(exec)
-    }
-
-    @Test
-    fun checkBalanceInAccountUserNotBalance() {
-        val mock = AccountMocks.accountCreated()
-        val withdrawValue = BigDecimal.valueOf(100)
-
-        every { accountRepository.findById(any()) } returns Optional.ofNullable(mock)
+        every { accountRepository.findByUserId(any()) } returns mock
         every { context.authentication.name } returns "123"
 
         val exec = accountService.checkBalanceInAccountUser()
@@ -122,13 +108,12 @@ class AccountServiceTest() {
     fun `when transfer balance in account, return success`() {
         val exchange = AccountMocks.exchangeMock()
         val mock = AccountMocks.accountCreated()
-        val mockWithBalance = AccountMocks.accountCreatedWithBalance()
+        val mockWithBalance = AccountMocks.accountCreatedWithBalance(BigDecimal.valueOf(500.00))
         val transferMock = AccountMocks.transferDtoMock()
-        val response = AccountMocks.transferWithAccountInTheSameCountry()
         val time = ZonedDateTime.now()
 
         every { exchangeUtil.client() } returns exchange
-        every { accountRepository.findById(any()) } returns Optional.ofNullable(mockWithBalance)
+        every { accountRepository.findByUserId(any()) } returns mockWithBalance
         every { context.authentication.name } returns "123"
         every { accountRepository.findBydocument(transferMock.recipientDocument) } returns mock
         every { accountRepository.save(any()) } returns mock
@@ -138,7 +123,7 @@ class AccountServiceTest() {
 
         val exec = accountService.transferBalanceBetweenAccounts(transferMock)
 
-        assertEquals(response, exec)
+        assertEquals("Success Transfer", exec)
 
     }
 }

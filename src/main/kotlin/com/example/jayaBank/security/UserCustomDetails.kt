@@ -8,13 +8,13 @@ import org.springframework.security.core.userdetails.UserDetails
 class UserCustomDetails(
     val account: Account
 ): UserDetails {
-    val id = account.id
+    val id = account.userId
 
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> = account.rule.map { SimpleGrantedAuthority(it.name) }.toMutableList()
 
     override fun getPassword(): String = account.password
 
-    override fun getUsername(): String = account.id.toString()
+    override fun getUsername(): String = account.userId.toString()
 
     override fun isAccountNonExpired(): Boolean = true
 

@@ -18,11 +18,11 @@ class Account(
 ) {
     var balance = balance
         private set
-    var id = id
+    var userId = id
         private set
     fun withdrawAccountBalance(balanceToWithdraw: BigDecimal) =
         also {
-            this.takeUnless { balance >= balanceToWithdraw }
+            this.takeIf { balance >= balanceToWithdraw }
                 ?.let { balance -= balanceToWithdraw }
                 ?: throw NotBalanceException("insufficient funds", HttpStatus.BAD_REQUEST)
         }
@@ -41,15 +41,16 @@ class Account(
             "Success Transfer"
         }
 
-    fun createAccount(account: CreateAccountDTO, bCryptPasswordEncoder: BCryptPasswordEncoder) = Account(
-        id = null,
-        name = account.name,
-        document = account.document,
-        password = bCryptPasswordEncoder.encode(account.password),
-        balance = BigDecimal.ZERO,
-        rule = setOf(Rules.USER),
-        coin = setOf(Coin.valueOf(account.coin))
-    )
-    fun updateAccount(idUpdate: String) = this.apply { id = idUpdate }
-
+    fun updateAccount(idUpdate: String) = this.apply { userId = idUpdate }
+    companion object {
+        fun createAccount(account: CreateAccountDTO, bCryptPasswordEncoder: BCryptPasswordEncoder) = Account(
+                id = null,
+                name = account.name,
+                document = account.document,
+                password = bCryptPasswordEncoder.encode(account.password),
+                balance = BigDecimal.ZERO,
+                rule = setOf(Rules.USER),
+                coin = setOf(Coin.valueOf(account.coin))
+        )
+    }
 }
