@@ -30,7 +30,7 @@ class UserControllerTests {
     fun `should correct call, when payload is correct, returns created`() {
         val test = AccountMocks.createAccontSuccess()
         val requestJson = jacksonObjectMapper().writeValueAsString(test)
-        val response = AccountMocks.createAccountSuccessResponse()
+        val response = AccountMocks.accountCreated()
 
         every { userService.createUserAccount(any()) } returns response
 
@@ -51,9 +51,6 @@ class UserControllerTests {
         val account = AccountMocks.accountCreated()
         val requestJson = jacksonObjectMapper().writeValueAsString(account)
 
-
-        every { userService.updateUserAccount(any()) } returns account
-
         val request = mockMvc.perform(
             MockMvcRequestBuilders
                 .put("/user/updateAccount")
@@ -61,8 +58,7 @@ class UserControllerTests {
                 .content(requestJson)
         )
 
-        val exec =
-            request.andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
+        val exec = request.andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
             .andReturn().response
         assertEquals(HttpStatus.OK.value(), exec.status)
     }

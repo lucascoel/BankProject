@@ -103,6 +103,4 @@ class UserServiceTest() {
 
         assertEquals(response, exec)
     }
-
 }
-
