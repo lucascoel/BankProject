@@ -85,7 +85,7 @@ class AccountService(
     ): TransferExtractDTO {
         val dateOfTransfer = ZonedDateTime.now()
 
-        val objetoTransfer = Transfer(
+        val objectTransfer = Transfer(
                 name = userAuthenticatedAccountUpdated.name,
                 document = userAuthenticatedAccountUpdated.document,
                 recipientName = recipientAccountUpdated.name,
@@ -94,7 +94,7 @@ class AccountService(
                 dateOfTransaction = dateOfTransfer
         )
 
-        transferRepository.save(objetoTransfer)
+        transferRepository.save(objectTransfer)
 
         return TransferExtractDTO(
                 transferValue = transferDTO.value,
