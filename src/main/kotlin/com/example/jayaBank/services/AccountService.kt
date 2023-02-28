@@ -4,7 +4,6 @@ import com.example.jayaBank.commons.UserAuth
 import com.example.jayaBank.dtos.OperationExtractDTO
 import com.example.jayaBank.dtos.TransferDTO
 import com.example.jayaBank.dtos.TransferExtractDTO
-import com.example.jayaBank.exceptions.AccountException
 import com.example.jayaBank.exceptions.NotFoundException
 import com.example.jayaBank.models.Account
 import com.example.jayaBank.models.Transfer
@@ -37,9 +36,8 @@ class AccountService(
                     .also { println("$it success withdraw") }
 
     fun checkBalanceInAccountUser() =
-            accountRepository.findByUserId(userAuthenticated)
-                    .let { it.balance }
-                    .also { println("${it} checked balance account") }
+            accountRepository.findByUserId(userAuthenticated).balance
+                    .also { println("$it checked balance account") }
 
     fun transferBalanceBetweenAccounts(transferDTO: TransferDTO): TransferExtractDTO {
         val userAuthenticatedAccount = accountRepository.findByUserId(userAuthenticated)
