@@ -21,9 +21,12 @@ class UserService(
 ) : UserAuth {
     fun createUserAccount(account: CreateAccountDTO) =
         accountRepository.findBydocument(account.document)
-            .takeUnless { it?.document == null }
-            ?.runCatching { throw AccountException("Account exist", HttpStatus.BAD_REQUEST) }
-            ?: Account.createAccount(account, bCryptPasswordEncoder).let { accountRepository.save(it) }.also{ print("alou") }
+            .takeIf { it?.document.isNullOrBlank() }
+            ?.let { Account.createAccount(account, bCryptPasswordEncoder) }
+            ?.let { accountRepository.save(it) }
+            ?.also{ print("alou") }
+            ?: throw AccountException("Account exist", HttpStatus.BAD_REQUEST)
+
 
     fun updateUserAccount(account: Account): Account =
         accountRepository.findBydocument(account.document)

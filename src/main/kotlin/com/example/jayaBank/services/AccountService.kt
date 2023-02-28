@@ -7,6 +7,7 @@ import com.example.jayaBank.dtos.TransferExtractDTO
 import com.example.jayaBank.exceptions.AccountException
 import com.example.jayaBank.exceptions.NotFoundException
 import com.example.jayaBank.models.Account
+import com.example.jayaBank.models.Transfer
 import com.example.jayaBank.repositories.AccountRepository
 import com.example.jayaBank.repositories.TransferRepository
 import com.example.jayaBank.utils.ExchangeUtil
@@ -40,14 +41,16 @@ class AccountService(
                     .let { it.balance }
                     .also { println("${it} checked balance account") }
 
-    fun transferBalanceBetweenAccounts(transferDTO: TransferDTO): String {
+    fun transferBalanceBetweenAccounts(transferDTO: TransferDTO): TransferExtractDTO {
         val userAuthenticatedAccount = accountRepository.findByUserId(userAuthenticated)
         val recipientAccount = searchDocument(transferDTO.recipientDocument)
 
         val conversionRate =
                 createConversionRate(recipientAccount.coin.joinToString(), userAuthenticatedAccount.coin.joinToString())
 
-        return userAuthenticatedAccount.transfer(transferDTO.value.multiply(conversionRate), recipientAccount)
+        userAuthenticatedAccount.transfer(transferDTO.value.multiply(conversionRate), recipientAccount)
+
+        return savingTransfer(transferDTO, userAuthenticatedAccount, recipientAccount, conversionRate)
     }
 
     private fun searchDocument(cpf: String) =
@@ -74,38 +77,29 @@ class AccountService(
                     account.balance
             )
 
-
     private fun savingTransfer(
-            previousBalance: BigDecimal,
+            transferDTO: TransferDTO,
             userAuthenticatedAccountUpdated: Account,
             recipientAccountUpdated: Account,
-            value: BigDecimal,
             conversionRate: BigDecimal
     ): TransferExtractDTO {
         val dateOfTransfer = ZonedDateTime.now()
 
-        accountRepository.save(userAuthenticatedAccountUpdated)
-                .also { println("${it.userId} saved after transfer") }
+        val objetoTransfer = Transfer(
+                name = userAuthenticatedAccountUpdated.name,
+                document = userAuthenticatedAccountUpdated.document,
+                recipientName = recipientAccountUpdated.name,
+                recipientDocument = recipientAccountUpdated.document,
+                transferValue = transferDTO.value,
+                dateOfTransaction = dateOfTransfer
+        )
 
-        accountRepository.save(recipientAccountUpdated)
-                .also { println("${it.userId} saved after transfer") }
-
-//        val objetoTransfer = Transfer(
-//            id = null,
-//            name = userAuthenticatedAccountUpdated.name,
-//            document = userAuthenticatedAccountUpdated.document,
-//            recipientName = recipientAccountUpdated.name,
-//            recipientDocument = recipientAccountUpdated.document,
-//            transferValue = value,
-//            dateOfTransaction = dateOfTransfer
-//        )
-//
-//        transferRepository.save(objetoTransfer)
+        transferRepository.save(objetoTransfer)
 
         return TransferExtractDTO(
-                transferValue = value,
+                transferValue = transferDTO.value,
                 conversionRate = conversionRate,
-                previousBalance = previousBalance,
+                previousBalance = transferDTO.value,
                 currentBalance = userAuthenticatedAccountUpdated.balance,
                 recipient = recipientAccountUpdated.name,
                 recipientDocument = recipientAccountUpdated.document,
