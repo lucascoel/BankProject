@@ -63,7 +63,7 @@ class AccountService(
 
         return exchange!!.rates[recipientCoin]!!
                 .divide(
-                        exchange!!.rates[userAuthenticatedCoin],
+                        exchange.rates[userAuthenticatedCoin],
                         2,
                         RoundingMode.HALF_EVEN
                 )
