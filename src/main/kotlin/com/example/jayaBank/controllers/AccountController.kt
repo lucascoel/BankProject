@@ -29,7 +29,7 @@ class AccountController(
     fun checkBalance() = accountService.checkBalanceInAccountUser()
 
     @PostMapping("/transfer")
-    fun transferBalance(@RequestBody transferDTO: TransferDTO): String {
+    fun transferBalance(@RequestBody transferDTO: TransferDTO): TransferExtractDTO {
         return accountService.transferBalanceBetweenAccounts(transferDTO)
     }
 }
